@@ -1,0 +1,17 @@
+#!/bin/bash
+
+BIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "${BIN_DIR}/annex-common-functions.sh"
+
+root="$(annex-find-root)" || exit $?
+
+[[ -d "${root}/.annex-workarounds" ]] && annex-pre "$root"
+
+git annex get "$@"
+ret=$?
+git annex metadata -t "wanted-$(git config annex.uuid)" --force --quiet "$@"
+
+[[ -d "${root}/.annex-workarounds" ]] && annex-post "$root"
+
+exit $ret

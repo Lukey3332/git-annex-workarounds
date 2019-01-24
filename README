@@ -1,0 +1,25 @@
+This is a collection of some Workarounds around the limitations of git-annex. Like:
+ -An option to include the gnupg home into the annex repo to allow shared encryption for gcrypt remotes
+ -Using and Syncing git repos inside the annex repo (However be carefull that all files inside .git are present and unlocked)
+ -Using annex-get and annex-drop to manage which files should be available in the local annex repo
+
+Usage:
+
+0. Put something like this into your .bashrc:
+PATH=$PATH:~/Downloads/git-annex-workarounds/new-repo-template/.annex-workarounds/bin
+
+1. Copy the new-repo-template to a desired location:
+$ cp -a new-repo-template ~/annex
+
+2. Initialize it:
+$ cd ~/annex
+$ .annex-workarounds/init-template.sh
+
+3. (Optional) Specify your git repos inside .annex-workarounds/git-repos.conf
+$ nano .annex-workarounds/git-repos.conf
+
+4. Use it:
+$ annex-sync --no-commit
+$ annex-get <somefile>
+$ annex-drop
+$ annex find
