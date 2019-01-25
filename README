@@ -1,25 +1,56 @@
-This is a collection of some Workarounds around the limitations of git-annex. Like:
- -An option to include the gnupg home into the annex repo to allow shared encryption for gcrypt remotes
- -Using and Syncing git repos inside the annex repo (However be carefull that all files inside .git are present and you are in direct mode)
- -Using annex-get and annex-drop to manage which files should be available in the local annex repo
+This is a collection of bash scripts to work around some of the limitations of git-annex.
 
-Usage:
+.The Workarounds include:
+ - An option to store gpg keys inside the annex to emulate +encryption=shared+ for gcrypt remotes + 
+   This is done by pointing the +GNUPGHOME+ environment variable to +.annex-workarounds/gnupg+ inside 
+   the annex
+ - Using and Syncing git repositories inside the annex repo + 
+   This is done by renaming the +.git+ directories to +dotgit+ before git-annex is run and vice versa.
+   You'll need to be carefull that all files inside +.git+ are present and you are in direct mode (v5) 
+   or all files are unlocked (v7)
+ - Using annex-get and annex-drop to manage which files should be available in the local annex repo + 
+   This is done by setting a tag +wanted-<annex-uuid>+ on these files and the prefered content 
+   expression to +exclude=archive/* and (present or metadata=tag=wanted-<annex-uuid> or include=*/dotgit/*)+, 
+   so newer versions of a file will be pulled too.
 
-0. Put something like this into your .bashrc:
+.Usage:
+
+ 1. *Optional* Put something like this into your .bashrc:
++
+----
 PATH=$PATH:~/Downloads/git-annex-workarounds/new-repo-template/.annex-workarounds/bin
+----
 
-1. Copy the new-repo-template to a desired location:
+ 2. Copy the new-repo-template to a desired location for your new Repository: + 
++
+----
 $ cp -a new-repo-template ~/annex
+----
 
-2. Initialize it:
+ 3. Initialize it: + 
++
+----
 $ cd ~/annex
 $ .annex-workarounds/init-template.sh
+----
 
-3. (Optional) Specify your git repos inside .annex-workarounds/git-repos.conf
+ 4. *Optional* Specify your git repos inside .annex-workarounds/git-repos.conf + 
++
+----
 $ nano .annex-workarounds/git-repos.conf
+----
 
-4. Use it:
+ 5. Use it: + 
++
+----
 $ annex-sync --no-commit
 $ annex-get <somefile>
 $ annex-drop
-$ annex find
+$ annex initremote test type=gcrypt encryption=hybrid gitrepo=test:annex/test keyid=<keyid>
+----
+
+6. Clones need to run this first, so the +.git+ directories get renamed back.
++
+----
+$ .annex-workarounds/init-clone.sh
+----
