@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if ! [[ -d ".annex-workarounds" ]]; then
- echo "This Script needs to be run from the root of the new Repo"
+ echo "This script needs to be run from the root of the new repository"
  exit 1
 fi
 
@@ -19,14 +19,6 @@ if ! is_false "$OVERRIDE_GNUPGHOME"; then
 
  cat >> ".annex-workarounds/annex.conf" <<EOF
 OVERRIDE_GNUPGHOME=Y
-EOF
-
- cat > ".annex-workarounds/gnupg/gpg.conf" <<EOF
-pinentry-mode loopback
-no-auto-check-trustdb
-no-random-seed-file
-no-permission-warning
-quiet
 EOF
 
  killall -KILL gpg-agent

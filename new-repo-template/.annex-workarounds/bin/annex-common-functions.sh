@@ -35,7 +35,7 @@ annex-find-root() {
  while ! [ -d "${root}/.git/annex" ]; do
   root="$(dirname "$root")"
   if [[ "$root" == "/" ]]; then
-   echo "Unable to find git-annex Repository" >&2
+   echo "Unable to find git-annex repository" >&2
    exit 1
   fi
  done

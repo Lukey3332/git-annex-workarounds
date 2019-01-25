@@ -1,14 +1,14 @@
 #!/bin/bash
 
 if ! [[ -d ".annex-workarounds" ]]; then
- echo "This Script needs to be run from the root of the Repo"
+ echo "This script needs to be run from the root of the repository"
  exit 1
 fi
 
 read -p "Name of this Repo: " name
 git annex init "$name"
 
-echo "Execute the following on the source repo: git remote add <this-repo>"
+echo "Execute the following on the source repo: git remote add <name> <this-repo>"
 
 git annex wanted . "exclude=archive/* and (present or metadata=tag=wanted-$(git config annex.uuid) or include=*/dotgit/*)"
 
