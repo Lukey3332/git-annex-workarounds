@@ -7,14 +7,15 @@ source "${BIN_DIR}/annex-common-functions.sh"
 root="$(annex-find-root)" || exit $?
 
 if [[ -d "${root}/.annex-workarounds" ]]; then
+ source "${root}/.annex-workarounds/annex.conf"
  annex-pre "$root"
 
- # Add these Files to git directly so freshly cloned Repos have everything
- # to initialize themselves
- git annex proxy git add "${root}/.annex-workarounds/bin" "${root}/.annex-workarounds/"*.sh "${root}/.annex-workarounds/"*.conf
+ if is_true "$GIT_ADD_ESSENTIALS"; then
+  # Add these Files to git directly so freshly cloned Repos have everything
+  # to initialize themselves
+  git annex proxy git add "${root}/.gitignore" "${root}/.gitattributes" "${root}/.annex-workarounds/bin" "${root}/.annex-workarounds/"*.sh "${root}/.annex-workarounds/"*.conf
+ fi
 fi
-
-git annex proxy git add "${root}/.gitignore" "${root}/.gitattributes"
 
 git annex add --include-dotfiles "${root}/."
 git annex sync --content "$@"
