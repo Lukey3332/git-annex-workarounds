@@ -78,7 +78,7 @@ annex-unmask-git() {
   # Is this line a Comment or empty?
   ( [[ "$line" =~ ^#.*$ ]] || [[ -z "$line" ]] ) && continue
   for n in "${root}/"$line; do
-   [[ -d "$n/.git" ]] || continue
+   [[ -d "$n/dotgit" ]] || continue
    mv "$n/dotgit" "$n/.git" || exit 1
   done
  done
