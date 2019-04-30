@@ -36,4 +36,7 @@ OVERRIDE_GNUPGHOME=N
 EOF
 fi
 
+touch .gitignore
+touch .gitattributes
+
 .annex-workarounds/bin/annex-sync
