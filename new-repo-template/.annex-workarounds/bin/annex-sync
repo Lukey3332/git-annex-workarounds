@@ -18,7 +18,7 @@ if [[ -d "${root}/.annex-workarounds" ]]; then
 fi
 
 git annex add --include-dotfiles "${root}/."
-git annex sync --content "$@"
+git annex sync "$@"
 ret=$?
 
 [[ -d "${root}/.annex-workarounds" ]] && annex-post "$root"
