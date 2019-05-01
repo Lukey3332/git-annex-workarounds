@@ -90,7 +90,7 @@ annex-pre() {
  source "${root}/.annex-workarounds/annex.conf"
  
  if is_true "$OVERRIDE_GNUPGHOME"; then
-  killall -KILL gpg-agent
+  killall -KILL gpg-agent &>/dev/null
   export GNUPGHOME="${root}/.annex-workarounds/gnupg"
  fi
  
@@ -102,7 +102,7 @@ annex-post() {
  source "${root}/.annex-workarounds/annex.conf"
  
  if is_true "$OVERRIDE_GNUPGHOME"; then
-  killall -KILL gpg-agent
+  killall -KILL gpg-agent &>/dev/null
   unset -v GNUPGHOME
  fi
  
