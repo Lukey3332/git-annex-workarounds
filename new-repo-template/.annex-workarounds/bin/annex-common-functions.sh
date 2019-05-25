@@ -27,6 +27,26 @@ is_false() {
  return 1
 }
 
+bogus_true() {
+ if ! is_false "$1"; then
+  echo -n "y"
+  return
+ else
+  echo -n "n"
+  return
+ fi
+}
+
+bogus_false() {
+ if is_true "$1"; then
+  echo -n "y"
+  return
+ else
+  echo -n "n"
+  return
+ fi
+}
+
 annex-find-root() {
  local root
  local curdir="$(pwd)"

@@ -1,0 +1,113 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+function show_help {
+ echo "Usage: $0 [ [-c|-s|-e] [-n] (--) name] ]
+-c This will be a Client Repository
+-s This will be a Server Repository
+-e This wil be an external HDD
+Not providing any Arguments will ask for these interactively"
+}
+
+interactive=1
+role=""
+name=""
+OVERRIDE_GNUPGHOME=""
+GIT_ADD_ESSENTIALS=""
+ANNEX_SYNC_AUTO_ADD=""
+
+if ! [[ -d ".annex-workarounds" ]]; then
+ echo "This needs to be run from the root of the new repository"
+ exit 1
+fi
+
+source ".annex-workarounds/bin/annex-common-functions.sh"
+source ".annex-workarounds/annex.conf"
+
+if [[ "$#" -gt 0 ]]; then
+ interactive=0
+fi
+
+if [[ $interactive -ne 0 ]]; then
+ read -p "Name of this Repo: " name
+ read -p "Role of this Repo [Cse]: " role
+ 
+ case "$role" in
+  c|s|e)
+  ;;
+  
+  *)
+   role="c"
+  ;;
+ esac
+ 
+else
+ OPTIND=1
+ while getopts 'cse' opt; do
+  case "$opt" in
+   h|\?)
+    show_help
+    exit 0
+   ;;
+   
+   c|s|e)
+    if [[ -n "$role" ]]; then
+     echo 'Error: Only one of -c, -s or -e can be given'
+     exit 1
+    fi
+    role="$opt"
+   ;;
+   
+   n)
+    clone=0
+   ;;
+   
+   *)
+    show_help
+    exit 1
+   ;;
+  esac
+ done
+fi
+
+git annex init "$name"
+
+root="$(annex-find-root)" || exit $?
+annex-post "$root"
+
+git config annex.jobs 2
+git config annex.diskreserve 256M
+
+case "$role" in
+ c)
+  git annex wanted . "exclude=archive/* and (present or metadata=tag=wanted-$(git config annex.uuid) or include=*/dotgit/*)"
+ ;;
+ 
+ s)
+  git annex wanted . "(not copies=exthdd:3) or approxlackingcopies=1 or present or metadata=tag=wanted-$(git config annex.uuid)"
+ ;;
+ 
+ e)
+  git annex group . exthdd
+  git annex wanted . groupwanted
+  git annex trust here
+  git config gc.auto 0
+  git config annex.jobs 1
+ ;;
+ 
+ *)
+  echo "Error: Wrong Role given"
+  exit 1
+ ;;
+esac
+
+if is_true "$OVERRIDE_GNUPGHOME"; then
+ git config gcrypt.gpg-args "--no-permission-warning"
+ git config annex.gnupg-options "--no-permission-warning"
+fi
+
+echo "Execute the following on the source repo: git remote add ${name} $(pwd)"
+
+exit 0

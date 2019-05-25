@@ -1,0 +1,132 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+function show_help {
+ echo "Usage: $0 [ [-c|-s|-e] [-gna] (--) name] ]
+-c This will be a Client Repository
+-s This will be a Server Repository
+-e This wil be an external HDD
+-g Use an gnupg home inside this repo
+-n Dont add essential files directly to git
+-a Dont automatically add files on annex-sync
+Not providing any Arguments will ask for these interactively"
+}
+
+interactive=1
+role=""
+name=""
+OVERRIDE_GNUPGHOME="n"
+GIT_ADD_ESSENTIALS="y"
+ANNEX_SYNC_AUTO_ADD="y"
+
+if ! [[ -d ".annex-workarounds" ]]; then
+ echo "This needs to be run from the root of the new repository"
+ exit 1
+fi
+
+source ".annex-workarounds/bin/annex-common-functions.sh"
+
+if [[ "$#" -gt 0 ]]; then
+ interactive=0
+fi
+
+if [[ $interactive -ne 0 ]]; then
+ read -p "Name of this Repo: " name
+ read -p "Role of this Repo [Cse]: " role
+ 
+ # convert to lowercase
+ role="${role,,}"
+ 
+ case "$role" in
+  c|s|e)
+  ;;
+  
+  *)
+   role="c"
+  ;;
+ esac
+ 
+ read -p "Should we initialize and use a gnupg home inside this repo? [yN] " OVERRIDE_GNUPGHOME
+ OVERRIDE_GNUPGHOME="$(bogus_false "$OVERRIDE_GNUPGHOME" )"
+ read -p "Should we automatically add essential files of annex-workarounds directly to git? [Yn] " GIT_ADD_ESSENTIALS
+ GIT_ADD_ESSENTIALS="$(bogus_true "$GIT_ADD_ESSENTIALS")"
+ read -p "Should we automatically add files to git annex in annex-sync? [Yn] " ANNEX_SYNC_AUTO_ADD
+ ANNEX_SYNC_AUTO_ADD="$(bogus_true "$ANNEX_SYNC_AUTO_ADD")"
+else
+ OPTIND=1
+ while getopts 'csegna' opt; do
+  case "$opt" in
+   h|\?)
+    show_help
+    exit 0
+   ;;
+   
+   c|s|e)
+    if [[ -n "$role" ]]; then
+     echo 'Error: Only one of -c, -s or -e can be given'
+     exit 1
+    fi
+    role="$opt"
+   ;;
+   
+   g)
+    OVERRIDE_GNUPGHOME="y"
+   ;;
+   
+   n)
+    GIT_ADD_ESSENTIALS="n"
+   ;;
+   
+   a)
+    ANNEX_AUTO_ADD="n"
+   ;;
+   
+   *)
+    show_help
+    exit 1
+   ;;
+  esac
+ done
+ 
+ shift $((OPTIND-1))
+
+ [ "${1:-}" = "--" ] && shift
+ 
+ if [[ -z "$1" ]]; then
+  echo 'Error: A name must be given'
+  exit 1
+ fi
+ 
+ name="$1"
+fi
+
+if is_true "$OVERRIDE_GNUPGHOME"; then
+ killall -KILL gpg-agent
+ export GNUPGHOME=".annex-workarounds/gnupg"
+ gpg --full-generate-key
+ killall -KILL gpg-agent
+ 
+ unset -v GNUPGHOME
+fi
+
+cat >> ".annex-workarounds/annex.conf" <<EOF
+OVERRIDE_GNUPGHOME=${OVERRIDE_GNUPGHOME}
+GIT_ADD_ESSENTIALS=${GIT_ADD_ESSENTIALS}
+ANNEX_SYNC_AUTO_ADD=${ANNEX_SYNC_AUTO_ADD}
+EOF
+
+touch .gitignore
+touch .gitattributes
+
+git init
+git annex init "$name"
+
+git annex numcopies 3
+git annex groupwanted exthdd "(not copies=exthdd:3) or approxlackingcopies=1 or present"
+
+.annex-workarounds/bin/annex-init-clone "-${role}" -- "$name"
+.annex-workarounds/bin/annex-sync
+
+exit 0
