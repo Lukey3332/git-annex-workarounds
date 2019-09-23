@@ -49,8 +49,7 @@ bogus_false() {
 
 annex-find-root() {
  local root
- local curdir="$(pwd)"
- root="$curdir"
+ root="$(pwd)"
  # First find out annex root (ignore non-annex git repos)
  while ! [ -d "${root}/.git/annex" ]; do
   root="$(dirname "$root")"
@@ -59,7 +58,6 @@ annex-find-root() {
    exit 1
   fi
  done
- cd "$curdir"
  echo -n "$root"
 }
 
@@ -107,10 +105,10 @@ annex-unmask-git() {
 
 annex-pre() {
  local root="$1"
- source "${root}/.annex-workarounds/annex.conf"
+ source "${root}/.annex-workarounds/annex.conf" || { echo "Unable to find annex.conf or syntax error"; exit 1; }
  
  if is_true "$OVERRIDE_GNUPGHOME"; then
-  killall -KILL gpg-agent &>/dev/null
+  killall -KILL gpg-agent &>/dev/null && true
   export GNUPGHOME="${root}/.annex-workarounds/gnupg"
  fi
  
@@ -119,10 +117,10 @@ annex-pre() {
 
 annex-post() {
  local root="$1"
- source "${root}/.annex-workarounds/annex.conf"
+ source "${root}/.annex-workarounds/annex.conf" || { echo "Unable to find annex.conf or syntax error"; exit 1; }
  
  if is_true "$OVERRIDE_GNUPGHOME"; then
-  killall -KILL gpg-agent &>/dev/null
+  killall -KILL gpg-agent &>/dev/null && true 
   unset -v GNUPGHOME
  fi
  

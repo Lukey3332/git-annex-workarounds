@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 BIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${BIN_DIR}/annex-common-functions.sh"
@@ -13,7 +16,7 @@ if [[ -d "${root}/.annex-workarounds" ]]; then
  if ! is_false "$GIT_ADD_ESSENTIALS"; then
   # Add these Files to git directly so freshly cloned Repos have everything
   # to initialize themselves
-  git annex proxy -- git add "${root}/.gitignore" "${root}/.gitattributes" "${root}/.annex-workarounds/bin" "${root}/.annex-workarounds/"*.conf
+  git annex proxy -- git -c 'annex.largefiles=exclude=*' add "${root}/.gitignore" "${root}/.gitattributes" "${root}/.annex-workarounds/bin" "${root}/.annex-workarounds/"*.conf && true
  fi
 fi
 

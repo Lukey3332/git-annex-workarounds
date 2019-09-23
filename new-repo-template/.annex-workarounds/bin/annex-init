@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-function show_help {
+show_help() {
  echo "Usage: $0 [ [-c|-s|-e] [-gna] (--) name] ]
 -c This will be a Client Repository
 -s This will be a Server Repository
@@ -115,6 +115,21 @@ cat >> ".annex-workarounds/annex.conf" <<EOF
 OVERRIDE_GNUPGHOME=${OVERRIDE_GNUPGHOME}
 GIT_ADD_ESSENTIALS=${GIT_ADD_ESSENTIALS}
 ANNEX_SYNC_AUTO_ADD=${ANNEX_SYNC_AUTO_ADD}
+EOF
+
+cat >> ".annex-workarounds/git-repos.conf" <<'EOF'
+# Enter git Repositories here relative to the root of the annex.     
+# gits/*
+# "build/space bar"
+EOF
+
+mkdir ".annex-workarounds/gnupg"
+
+cat >> ".annex-workarounds/gnupg/gpg.conf" <<'EOF'
+no-auto-check-trustdb
+no-random-seed-file
+no-permission-warning
+quiet
 EOF
 
 touch .gitignore

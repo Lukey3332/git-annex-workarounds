@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-function show_help {
+show_help() {
  echo "Usage: $0 [ [-c|-s|-e] [-n] (--) name] ]
 -c This will be a Client Repository
 -s This will be a Server Repository
@@ -70,6 +70,18 @@ else
    ;;
   esac
  done
+ 
+ 
+ shift $((OPTIND-1))
+
+ [ "${1:-}" = "--" ] && shift
+ 
+ if [[ -z "$1" ]]; then
+  echo 'Error: A name must be given'
+  exit 1
+ fi
+ 
+ name="$1"
 fi
 
 git annex init "$name"
